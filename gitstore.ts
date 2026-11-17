@@ -242,8 +242,10 @@ export function listCommits(store: Store, tip: string, limit = 1000): string[] {
   const out: string[] = [];
   const seen = new Set<string>();
   const queue = [tip];
-  while (queue.length > 0 && out.length < limit) {
-    const oid = queue.shift() as string;
+  let head = 0; // an index pointer, not shift(): draining a queue with shift() is O(n) a pop
+  while (head < queue.length && out.length < limit) {
+    const oid = queue[head] as string;
+    head += 1;
     if (seen.has(oid)) continue;
     const object = store.get(oid);
     if (object === undefined || object.type !== 'commit') continue;
@@ -259,8 +261,10 @@ export function mergeBase(store: Store, a: string, b: string): string | null {
   const distances = (tip: string): Map<string, number> => {
     const dist = new Map<string, number>();
     const queue: Array<[string, number]> = [[tip, 0]];
-    while (queue.length > 0) {
-      const [oid, depth] = queue.shift() as [string, number];
+    let head = 0;
+    while (head < queue.length) {
+      const [oid, depth] = queue[head] as [string, number];
+      head += 1;
       if (dist.has(oid)) continue;
       const object = store.get(oid);
       if (object === undefined || object.type !== 'commit') continue;
@@ -347,8 +351,10 @@ export function planFetch(
   // Distance (in generations, want = 1) of every commit reachable from the wants.
   const distance = new Map<string, number>();
   const queue: Array<[string, number]> = wantCommits.map((oid) => [oid, 1] as [string, number]);
-  while (queue.length > 0) {
-    const [oid, dist] = queue.shift() as [string, number];
+  let head = 0;
+  while (head < queue.length) {
+    const [oid, dist] = queue[head] as [string, number];
+    head += 1;
     const known = distance.get(oid);
     if (known !== undefined && known <= dist) continue;
     distance.set(oid, dist);
